@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Multiplayer Game</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link to our CSS file -->
+</head>
+<body>
+    <h1>2D Multiplayer Game</h1>
+    <canvas id="gameCanvas" width="800" height="600" style="border: 1px solid black;"></canvas>
+    <button id="nextLevelBtn" style="position: absolute; top: 10px; right: 10px; padding: 10px; display: none;">
+        Niveau Suivant
+    </button>
+    <div class="player-select">
+        <button onclick="setNumberOfPlayers(1)">1 Joueur</button>
+        <button onclick="setNumberOfPlayers(2)">2 Joueurs</button>
+        <button onclick="setNumberOfPlayers(3)">3 Joueurs</button>
+        <button onclick="setNumberOfPlayers(4)">4 Joueurs</button>
+    </div>
+    <div class="controls">
+        <p>Joueur 1: Flèches directionnelles</p>
+        <p>Joueur 2: ZQSD</p>
+        <p>Joueur 3: TFGH</p>
+        <p>Joueur 4: IJKL</p>
+    </div>
+    <script src="game.js"></script> <!-- Link to our JavaScript file -->
+</body>
+</html>
