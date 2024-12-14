@@ -10,6 +10,10 @@ let lastCountdownTime = 0;
 // Ajouter la référence au bouton
 const nextLevelBtn = document.getElementById('nextLevelBtn');
 
+// Ajouter des variables pour gérer l'affichage du gagnant
+let winner = null;
+let showWinner = false;
+
 // Fonction pour le compte à rebours
 function drawCountdown() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -43,40 +47,30 @@ class Player {
     move() {
         if (!gameStarted || !this.active) return;
 
-        // Sauvegarde de la position précédente
         let newX = this.x;
         let newY = this.y;
         
-        // Calcul de la nouvelle position
         if (keysPressed[this.keys.left]) newX -= this.speed;
         if (keysPressed[this.keys.right]) newX += this.speed;
         if (keysPressed[this.keys.up]) newY -= this.speed;
         if (keysPressed[this.keys.down]) newY += this.speed;
 
-        // Vérification des collisions avec les murs
+        // Vérification des limites du canvas
         newX = Math.max(0, Math.min(canvas.width - this.size, newX));
         newY = Math.max(0, Math.min(canvas.height - this.size, newY));
 
-        // Vérification des collisions avec les obstacles
-        if (!this.checkObstacleCollision(newX, newY)) {
-            // Vérification des collisions avec les autres joueurs
-            const collision = this.checkPlayerCollision(newX, newY);
-            if (collision) {
-                // Pousse l'autre joueur
-                const pushForce = 1.5; // Force de poussée
-                const dx = newX - this.x;
-                const dy = newY - this.y;
-                
-                collision.x += dx * pushForce;
-                collision.y += dy * pushForce;
-                
-                // Empêche l'autre joueur de sortir du canvas
-                collision.x = Math.max(0, Math.min(canvas.width - collision.size, collision.x));
-                collision.y = Math.max(0, Math.min(canvas.height - collision.size, collision.y));
-            }
-            
+        // Vérification séparée pour X et Y
+        if (!this.checkObstacleCollision(newX, this.y)) {
             this.x = newX;
+        }
+        if (!this.checkObstacleCollision(this.x, newY)) {
             this.y = newY;
+        }
+
+        // Vérification des collisions avec les autres joueurs
+        const collision = this.checkPlayerCollision(this.x, this.y);
+        if (collision) {
+            // Gestion de la collision avec les autres joueurs...
         }
     }
     checkObstacleCollision(newX, newY) {
@@ -127,6 +121,11 @@ const keysPressed = {};
 // Modifier les event listeners
 document.addEventListener('keydown', (e) => {
     keysPressed[e.key] = true;
+    
+    // Ajouter la détection de la touche espace
+    if (e.code === 'Space' && !gameStarted) {
+        startNextLevel();
+    }
 });
 
 document.addEventListener('keyup', (e) => {
@@ -288,9 +287,9 @@ function checkExitCollision(player) {
 
     if (distance < player.size + exit.size / 2) {
         player.score += 4;
-        // Afficher le bouton quand le joueur atteint la sortie
+        winner = player;
+        showWinner = true;
         nextLevelBtn.style.display = 'block';
-        // Mettre le jeu en pause
         gameStarted = false;
     }
 }
@@ -446,26 +445,32 @@ function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (!gameStarted) {
-        const currentTime = Date.now();
-        if (currentTime - lastCountdownTime >= 1000) {
-            countdown--;
-            lastCountdownTime = currentTime;
-            if (countdown < -1) {
-                gameStarted = true;
-                startTime = Date.now(); // Réinitialiser le chronomètre au début du jeu
+        if (showWinner) {
+            // Afficher le gagnant
+            players.forEach(player => player.draw());
+            obstacles.forEach(obstacle => obstacle.draw());
+            drawExit();
+            displayScores();
+            displayWinner();
+        } else {
+            const currentTime = Date.now();
+            if (currentTime - lastCountdownTime >= 1000) {
+                countdown--;
+                lastCountdownTime = currentTime;
+                if (countdown < -1) {
+                    gameStarted = true;
+                    startTime = Date.now();
+                }
             }
+            drawCountdown();
         }
-        drawCountdown();
     } else {
-    
-        // Move and draw players
         players.forEach(player => {
             player.move();
             player.draw();
             checkExitCollision(player);
         });
 
-        // Draw obstacles
         obstacles.forEach(obstacle => {
             if (obstacle instanceof MovingObstacle) {
                 obstacle.move();
@@ -473,10 +478,7 @@ function gameLoop() {
             obstacle.draw();
         });
 
-        // Draw exit
         drawExit();
-
-        // Display scores
         displayScores();
     }
 
@@ -494,20 +496,41 @@ function initGame() {
 }
 
 // Ajouter l'event listener pour le bouton
-nextLevelBtn.addEventListener('click', () => {
-    // Cacher le bouton
+nextLevelBtn.addEventListener('click', startNextLevel);
+
+// Ajouter une fonction pour gérer le passage au niveau suivant
+function startNextLevel() {
     nextLevelBtn.style.display = 'none';
-    // Passer au niveau suivant
     currentLevel++;
-    // Réinitialiser les obstacles
     obstacles.length = 0;
     createNewObstacles();
-    // Réinitialiser les positions des joueurs
     players.forEach(player => resetPlayerPosition(player));
-    // Redémarrer le jeu
     gameStarted = true;
+    countdown = 5;
+    lastCountdownTime = Date.now();
     startTime = Date.now();
-});
+    winner = null;
+    showWinner = false;
+}
+
+// Ajouter une fonction pour afficher le gagnant
+function displayWinner() {
+    if (!winner) return;
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 40px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Déterminer quel joueur a gagné
+    let playerNumber = players.indexOf(winner) + 1;
+    ctx.fillText(`Joueur ${playerNumber} gagne le niveau ${currentLevel}!`, canvas.width / 2, canvas.height / 2 - 50);
+    ctx.font = '20px Arial';
+    ctx.fillText('Appuyez sur ESPACE ou cliquez sur le bouton pour continuer', canvas.width / 2, canvas.height / 2 + 50);
+}
 
 // Appeler initGame avant de démarrer le jeu
 initGame();
