@@ -14,6 +14,14 @@ const nextLevelBtn = document.getElementById('nextLevelBtn');
 let winner = null;
 let showWinner = false;
 
+// Positions initiales des joueurs
+const INITIAL_POSITIONS = [
+    { x: 130, y: 20 },  // Joueur 1 (Rouge)
+    { x: 130, y: 50 },  // Joueur 2 (Bleu)
+    { x: 130, y: 80 },  // Joueur 3 (Vert)
+    { x: 130, y: 110 }  // Joueur 4 (Violet)
+];
+
 // Fonction pour le compte à rebours
 function drawCountdown() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -38,7 +46,7 @@ class Player {
         this.x = x;
         this.y = y;
         this.size = 20;
-        this.speed = 2;
+        this.speed = 3;
         this.score = 0;
         this.keys = keys;
         this.active = false; // Pour suivre si le joueur est actif
@@ -248,8 +256,11 @@ function nextLevel() {
 
 // Reset player position when they reach the exit
 function resetPlayerPosition(player) {
-    player.x = 50;
-    player.y = 50;
+    const playerIndex = players.indexOf(player);
+    if (playerIndex !== -1) {
+        player.x = INITIAL_POSITIONS[playerIndex].x;
+        player.y = INITIAL_POSITIONS[playerIndex].y;
+    }
 }
 
 // Display score
@@ -490,6 +501,13 @@ function initGame() {
     currentLevel = 1;
     obstacles.length = 0; // Vider le tableau d'obstacles
     createNewObstacles(); // Créer uniquement les obstacles du niveau 1
+    
+    // Initialiser les positions des joueurs
+    players.forEach((player, index) => {
+        player.x = INITIAL_POSITIONS[index].x;
+        player.y = INITIAL_POSITIONS[index].y;
+    });
+    
     startTime = Date.now();
     gameStarted = false;
     countdown = 5;
@@ -504,7 +522,13 @@ function startNextLevel() {
     currentLevel++;
     obstacles.length = 0;
     createNewObstacles();
-    players.forEach(player => resetPlayerPosition(player));
+    
+    // Réinitialiser tous les joueurs à leurs positions initiales
+    players.forEach((player, index) => {
+        player.x = INITIAL_POSITIONS[index].x;
+        player.y = INITIAL_POSITIONS[index].y;
+    });
+    
     gameStarted = true;
     countdown = 5;
     lastCountdownTime = Date.now();
