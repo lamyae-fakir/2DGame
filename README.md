@@ -41,6 +41,7 @@ Un jeu 2D multijoueur où jusqu'à 4 joueurs peuvent participer simultanément. 
 ## Installation
 1. Clonez le repository
 2. Ouvrez le fichier `index.html` dans votre navigateur
+3. lancer la commande live-server pour executer le jeu 
 
 ## Technologies utilisées
 - HTML5
