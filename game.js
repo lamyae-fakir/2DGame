@@ -14,13 +14,8 @@ const nextLevelBtn = document.getElementById('nextLevelBtn');
 let winner = null;
 let showWinner = false;
 
-// Positions initiales des joueurs
-const INITIAL_POSITIONS = [
-    { x: 130, y: 20 },  // Joueur 1 (Rouge)
-    { x: 130, y: 50 },  // Joueur 2 (Bleu)
-    { x: 130, y: 80 },  // Joueur 3 (Vert)
-    { x: 130, y: 110 }  // Joueur 4 (Violet)
-];
+// Position initiale unique pour tous les joueurs et tous les niveaux
+const INITIAL_POSITION = { x: 50, y: 50 };
 
 // Fonction pour le compte à rebours
 function drawCountdown() {
@@ -256,27 +251,33 @@ function nextLevel() {
 
 // Reset player position when they reach the exit
 function resetPlayerPosition(player) {
-    const playerIndex = players.indexOf(player);
-    if (playerIndex !== -1) {
-        player.x = INITIAL_POSITIONS[playerIndex].x;
-        player.y = INITIAL_POSITIONS[playerIndex].y;
-    }
+    player.x = INITIAL_POSITION.x;
+    player.y = INITIAL_POSITION.y;
 }
 
 // Display score
 function displayScores() {
+    // Créer un fond pour les scores
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, 40);
+    
     // Scores des joueurs
-    ctx.font = '20px Arial';
-    ctx.fillStyle = 'black';
+    ctx.font = '16px Arial';
+    
+    // Afficher les scores alignés avec les positions de départ
     players.forEach((player, index) => {
-        ctx.fillText(`Player ${index + 1}: ${player.score}`, 10, 30 + index * 30);
+        ctx.fillStyle = player.color;
+        ctx.textAlign = 'center';
+        const scoreX = 50 + (index * 150);
+        ctx.fillText(`J${index + 1}: ${player.score}`, scoreX, 25);
     });
 
-    // Timer
+    // Timer et niveau en haut à droite
+    ctx.fillStyle = 'black';
+    ctx.textAlign = 'right';
     elapsedTime = Date.now() - startTime;
-    ctx.textAlign = 'center';
-    ctx.fillText(`Temps: ${formatTime(elapsedTime)}`, canvas.width / 2, 30);
-    ctx.textAlign = 'left'; // Réinitialiser l'alignement pour le reste du texte
+    ctx.fillText(`Niveau: ${currentLevel} | Temps: ${formatTime(elapsedTime)}`, canvas.width - 20, 25);
+    ctx.textAlign = 'left';
 }
 
 // Draw exit
@@ -503,9 +504,9 @@ function initGame() {
     createNewObstacles(); // Créer uniquement les obstacles du niveau 1
     
     // Initialiser les positions des joueurs
-    players.forEach((player, index) => {
-        player.x = INITIAL_POSITIONS[index].x;
-        player.y = INITIAL_POSITIONS[index].y;
+    players.forEach(player => {
+        player.x = INITIAL_POSITION.x;
+        player.y = INITIAL_POSITION.y;
     });
     
     startTime = Date.now();
@@ -523,10 +524,10 @@ function startNextLevel() {
     obstacles.length = 0;
     createNewObstacles();
     
-    // Réinitialiser tous les joueurs à leurs positions initiales
-    players.forEach((player, index) => {
-        player.x = INITIAL_POSITIONS[index].x;
-        player.y = INITIAL_POSITIONS[index].y;
+    // Réinitialiser tous les joueurs à la position initiale
+    players.forEach(player => {
+        player.x = INITIAL_POSITION.x;
+        player.y = INITIAL_POSITION.y;
     });
     
     gameStarted = true;
